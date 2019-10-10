@@ -10057,6 +10057,87 @@ func TestListTag(t *testing.T) {
 	require.Equal(t, "Object 0", actual.String())
 }
 
+// TestPodPatchUnmarshalling tests the fix for issues #3483, by adding a
+// PodPatch to a pipeline spec and making sure it's applied correctly
+func TestPodPatchUnmarshalling(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skipping integration tests in short mode")
+	}
+
+	c := getPachClient(t)
+	require.NoError(t, c.DeleteAll())
+
+	// Create input data
+	dataRepo := tu.UniqueString(t.Name() + "-data")
+	require.NoError(t, c.CreateRepo(dataRepo))
+	_, err := c.PutFile(dataRepo, "master", "file", strings.NewReader("foo"))
+	require.NoError(t, err)
+
+	// create pipeline
+	pipeline := tu.UniqueString("pod-patch-")
+	_, err = c.PpsAPIClient.CreatePipeline(
+		context.Background(),
+		&pps.CreatePipelineRequest{
+			Pipeline: client.NewPipeline(pipeline),
+			Transform: &pps.Transform{
+				Cmd:   []string{"bash"},
+				Stdin: []string{"cp", "/pfs/in/*", "/pfs/out"},
+			},
+			Input: &pps.Input{Pfs: &pps.PFSInput{
+				Name: "in", Repo: dataRepo, Glob: "/*",
+			}},
+			PodPatch: `[
+				{
+				  "op": "add",
+				  "path": "/volumes/0",
+				  "value": {
+				    "name": "vol0",
+				    "hostPath": {
+				      "path": "/volumePath"
+				}}}]`,
+		})
+	require.NoError(t, err)
+
+	commitIter, err := c.FlushCommit([]*pfs.Commit{commit1}, nil)
+	require.NoError(t, err)
+	commitInfos := collectCommitInfos(t, commitIter)
+	require.Equal(t, 1, len(commitInfos))
+
+	var buf bytes.Buffer
+	require.NoError(t, c.GetFile(commitInfos[0].Commit.Repo.Name, commitInfos[0].Commit.ID, "file", 0, 0, &buf))
+	require.Equal(t, "foo", buf.String())
+
+	// make sure 'vol0' is correct in the pod spec
+	pipelineInfo, err := c.InspectPipeline(pipelineName)
+	require.NoError(t, err)
+	rcName := ppsutil.PipelineRcName(pipelineInfo.Pipeline.Name, pipelineInfo.Version)
+	kubeClient := tu.GetKubeClient(t)
+	err = backoff.Retry(func() error {
+		podList, err := kubeClient.CoreV1().Pods(v1.NamespaceDefault).List(
+			metav1.ListOptions{
+				LabelSelector: metav1.FormatLabelSelector(metav1.SetAsLabelSelector(
+					map[string]string{"app": rcName},
+				)),
+			})
+		if err != nil {
+			return err // retry
+		}
+		if len(podList.Items) != 1 || len(podList.Items[0].Spec.Containers) == 0 {
+			return fmt.Errorf("could not find single container for pipeline %s", pipelineInfo.Pipeline.Name)
+		}
+		container = podList.Items[0].Spec.Containers[0]
+		return nil // no more retries
+	}, backoff.NewTestingBackOff())
+	require.NoError(t, err)
+	// Make sure a CPU and Memory request are both set
+	cpu, ok := container.Resources.Requests[v1.ResourceCPU]
+	require.True(t, ok)
+	require.Equal(t, "500m", cpu.String())
+	mem, ok := container.Resources.Requests[v1.ResourceMemory]
+	require.True(t, ok)
+	require.Equal(t, "100M", mem.String())
+}
+
 func getObjectCountForRepo(t testing.TB, c *client.APIClient, repo string) int {
 	pipelineInfos, err := pachClient.ListPipeline()
 	require.NoError(t, err)
