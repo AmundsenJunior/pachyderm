@@ -416,6 +416,7 @@ func TestGetSetBasic(t *testing.T) {
 		t.Skip("Skipping integration tests in short mode")
 	}
 	deleteAll(t)
+	defer deleteAll(t)
 	alice, bob := tu.UniqueString("alice"), tu.UniqueString("bob")
 	aliceClient, bobClient := getPachClient(t, alice), getPachClient(t, bob)
 
@@ -555,7 +556,6 @@ func TestGetSetBasic(t *testing.T) {
 	require.ElementsEqual(t,
 		entries(alice, "owner", bob, "owner", "carol", "reader"),
 		getACL(t, aliceClient, dataRepo))
-	deleteAll(t)
 }
 
 // TestGetSetReverse creates two users, alice and bob, and gives bob gradually
@@ -565,6 +565,7 @@ func TestGetSetReverse(t *testing.T) {
 		t.Skip("Skipping integration tests in short mode")
 	}
 	deleteAll(t)
+	defer deleteAll(t)
 	alice, bob := tu.UniqueString("alice"), tu.UniqueString("bob")
 	aliceClient, bobClient := getPachClient(t, alice), getPachClient(t, bob)
 
@@ -720,7 +721,6 @@ func TestGetSetReverse(t *testing.T) {
 	// check that ACL wasn't updated)
 	require.ElementsEqual(t,
 		entries(alice, "owner"), getACL(t, aliceClient, dataRepo))
-	deleteAll(t)
 }
 
 func TestCreateAndUpdatePipeline(t *testing.T) {
@@ -728,6 +728,7 @@ func TestCreateAndUpdatePipeline(t *testing.T) {
 		t.Skip("Skipping integration tests in short mode")
 	}
 	deleteAll(t)
+	defer deleteAll(t)
 	type createArgs struct {
 		client     *client.APIClient
 		name, repo string
@@ -916,7 +917,6 @@ func TestCreateAndUpdatePipeline(t *testing.T) {
 		_, err := iter.Next()
 		return err
 	})
-	deleteAll(t)
 }
 
 func TestPipelineMultipleInputs(t *testing.T) {
@@ -924,6 +924,7 @@ func TestPipelineMultipleInputs(t *testing.T) {
 		t.Skip("Skipping integration tests in short mode")
 	}
 	deleteAll(t)
+	defer deleteAll(t)
 	type createArgs struct {
 		client *client.APIClient
 		name   string
@@ -1107,7 +1108,6 @@ func TestPipelineMultipleInputs(t *testing.T) {
 	}))
 	require.OneOfEquals(t, bobUnionPipeline, PipelineNames(t, aliceClient))
 
-	deleteAll(t)
 }
 
 // TestPipelineRevoke tests revoking the privileges of a pipeline's creator as
@@ -1129,6 +1129,7 @@ func TestPipelineRevoke(t *testing.T) {
 		t.Skip("Skipping integration tests in short mode")
 	}
 	deleteAll(t)
+	defer deleteAll(t)
 	alice, bob := tu.UniqueString("alice"), tu.UniqueString("bob")
 	aliceClient, bobClient := getPachClient(t, alice), getPachClient(t, bob)
 
@@ -1287,7 +1288,6 @@ func TestPipelineRevoke(t *testing.T) {
 		}
 		return nil
 	})
-	deleteAll(t)
 }
 
 func TestStopAndDeletePipeline(t *testing.T) {
@@ -1295,6 +1295,7 @@ func TestStopAndDeletePipeline(t *testing.T) {
 		t.Skip("Skipping integration tests in short mode")
 	}
 	deleteAll(t)
+	defer deleteAll(t)
 	alice, bob := tu.UniqueString("alice"), tu.UniqueString("bob")
 	aliceClient, bobClient := getPachClient(t, alice), getPachClient(t, bob)
 
@@ -1448,7 +1449,6 @@ func TestStopAndDeletePipeline(t *testing.T) {
 	require.NoError(t, err)
 	err = bobClient.DeletePipeline(pipeline, false)
 	require.NoError(t, err)
-	deleteAll(t)
 }
 
 // Test ListRepo checks that the auth information returned by ListRepo and
@@ -1460,6 +1460,7 @@ func TestListAndInspectRepo(t *testing.T) {
 		t.Skip("Skipping integration tests in short mode")
 	}
 	deleteAll(t)
+	defer deleteAll(t)
 	alice, bob := tu.UniqueString("alice"), tu.UniqueString("bob")
 	aliceClient, bobClient := getPachClient(t, alice), getPachClient(t, bob)
 
@@ -1521,7 +1522,6 @@ func TestListAndInspectRepo(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, expectedAccess[name], inspectResp.AuthInfo.AccessLevel)
 	}
-	deleteAll(t)
 }
 
 func TestUnprivilegedUserCannotMakeSelfOwner(t *testing.T) {
@@ -1529,6 +1529,7 @@ func TestUnprivilegedUserCannotMakeSelfOwner(t *testing.T) {
 		t.Skip("Skipping integration tests in short mode")
 	}
 	deleteAll(t)
+	defer deleteAll(t)
 	alice, bob := tu.UniqueString("alice"), tu.UniqueString("bob")
 	aliceClient, bobClient := getPachClient(t, alice), getPachClient(t, bob)
 
@@ -1547,7 +1548,6 @@ func TestUnprivilegedUserCannotMakeSelfOwner(t *testing.T) {
 	require.YesError(t, err)
 	// make sure ACL wasn't updated
 	require.ElementsEqual(t, entries(alice, "owner"), getACL(t, aliceClient, repo))
-	deleteAll(t)
 }
 
 func TestGetScopeRequiresReader(t *testing.T) {
@@ -1555,6 +1555,7 @@ func TestGetScopeRequiresReader(t *testing.T) {
 		t.Skip("Skipping integration tests in short mode")
 	}
 	deleteAll(t)
+	defer deleteAll(t)
 	alice, bob := tu.UniqueString("alice"), tu.UniqueString("bob")
 	aliceClient, bobClient := getPachClient(t, alice), getPachClient(t, bob)
 
@@ -1579,7 +1580,6 @@ func TestGetScopeRequiresReader(t *testing.T) {
 		})
 	require.YesError(t, err)
 	require.Matches(t, "not authorized", err.Error())
-	deleteAll(t)
 }
 
 // TestListRepoNotLoggedInError makes sure that if a user isn't logged in, and
@@ -1589,6 +1589,7 @@ func TestListRepoNotLoggedInError(t *testing.T) {
 		t.Skip("Skipping integration tests in short mode")
 	}
 	deleteAll(t)
+	defer deleteAll(t)
 	alice := tu.UniqueString("alice")
 	aliceClient, anonClient := getPachClient(t, alice), getPachClient(t, "")
 
@@ -1603,7 +1604,6 @@ func TestListRepoNotLoggedInError(t *testing.T) {
 		&pfs.ListRepoRequest{})
 	require.YesError(t, err)
 	require.Matches(t, "no authentication token", err.Error())
-	deleteAll(t)
 }
 
 // TestListRepoNoAuthInfoIfDeactivated tests that if auth isn't activated, then
@@ -1613,6 +1613,7 @@ func TestListRepoNoAuthInfoIfDeactivated(t *testing.T) {
 		t.Skip("Skipping integration tests in short mode")
 	}
 	deleteAll(t)
+	defer deleteAll(t)
 	// Dont't run this test in parallel, since it deactivates the auth system
 	// globally, so any tests running concurrently will fail
 	alice, bob := tu.UniqueString("alice"), tu.UniqueString("bob")
@@ -1649,7 +1650,6 @@ func TestListRepoNoAuthInfoIfDeactivated(t *testing.T) {
 	for _, info := range infos {
 		require.Nil(t, info.AuthInfo)
 	}
-	deleteAll(t)
 }
 
 // TestCreateRepoAlreadyExistsError tests that creating a repo that already
@@ -1660,6 +1660,7 @@ func TestCreateRepoAlreadyExistsError(t *testing.T) {
 		t.Skip("Skipping integration tests in short mode")
 	}
 	deleteAll(t)
+	defer deleteAll(t)
 	alice, bob := tu.UniqueString("alice"), tu.UniqueString("bob")
 	aliceClient, bobClient := getPachClient(t, alice), getPachClient(t, bob)
 
@@ -1672,7 +1673,6 @@ func TestCreateRepoAlreadyExistsError(t *testing.T) {
 	err := bobClient.CreateRepo(repo)
 	require.YesError(t, err)
 	require.Matches(t, "already exists", err.Error())
-	deleteAll(t)
 }
 
 // TestCreateRepoNotLoggedInError makes sure that if a user isn't logged in, and
@@ -1682,6 +1682,7 @@ func TestCreateRepoNotLoggedInError(t *testing.T) {
 		t.Skip("Skipping integration tests in short mode")
 	}
 	deleteAll(t)
+	defer deleteAll(t)
 	anonClient := getPachClient(t, "")
 
 	// anonClient tries and fails to create a repo
@@ -1689,7 +1690,6 @@ func TestCreateRepoNotLoggedInError(t *testing.T) {
 	err := anonClient.CreateRepo(repo)
 	require.YesError(t, err)
 	require.Matches(t, "no authentication token", err.Error())
-	deleteAll(t)
 }
 
 // Creating a pipeline when the output repo already exists gives you an error to
@@ -1700,6 +1700,7 @@ func TestCreatePipelineRepoAlreadyExistsError(t *testing.T) {
 		t.Skip("Skipping integration tests in short mode")
 	}
 	deleteAll(t)
+	defer deleteAll(t)
 	alice, bob := tu.UniqueString("alice"), tu.UniqueString("bob")
 	aliceClient, bobClient := getPachClient(t, alice), getPachClient(t, bob)
 
@@ -1728,7 +1729,6 @@ func TestCreatePipelineRepoAlreadyExistsError(t *testing.T) {
 	)
 	require.YesError(t, err)
 	require.Matches(t, "cannot overwrite repo", err.Error())
-	deleteAll(t)
 }
 
 // TestAuthorizedNoneRole tests that Authorized(user, repo, NONE) yields 'true',
@@ -1738,6 +1738,7 @@ func TestAuthorizedNoneRole(t *testing.T) {
 		t.Skip("Skipping integration tests in short mode")
 	}
 	deleteAll(t)
+	defer deleteAll(t)
 	adminClient := getPachClient(t, admin)
 
 	// Deactivate auth
@@ -1771,7 +1772,6 @@ func TestAuthorizedNoneRole(t *testing.T) {
 	})
 	require.NoError(t, err)
 	require.True(t, resp.Authorized)
-	deleteAll(t)
 }
 
 // TestDeleteAll tests that you must be a cluster admin to call DeleteAll
@@ -1780,6 +1780,7 @@ func TestDeleteAll(t *testing.T) {
 		t.Skip("Skipping integration tests in short mode")
 	}
 	deleteAll(t)
+	defer deleteAll(t)
 	alice := tu.UniqueString("alice")
 	aliceClient, adminClient := getPachClient(t, alice), getPachClient(t, admin)
 
@@ -1794,7 +1795,6 @@ func TestDeleteAll(t *testing.T) {
 
 	// admin calls DeleteAll and succeeds
 	require.NoError(t, adminClient.DeleteAll())
-	deleteAll(t)
 }
 
 // TestListDatum tests that you must have READER access to all of job's
@@ -1804,6 +1804,7 @@ func TestListDatum(t *testing.T) {
 		t.Skip("Skipping integration tests in short mode")
 	}
 	deleteAll(t)
+	defer deleteAll(t)
 	alice, bob := tu.UniqueString("alice"), tu.UniqueString("bob")
 	aliceClient, bobClient := getPachClient(t, alice), getPachClient(t, bob)
 
@@ -1913,7 +1914,6 @@ func TestListDatum(t *testing.T) {
 		"file1": struct{}{},
 		"file2": struct{}{},
 	}, files)
-	deleteAll(t)
 }
 
 // TestListJob tests that you must have READER access to a pipeline's output
@@ -1925,6 +1925,7 @@ func TestListJob(t *testing.T) {
 		t.Skip("Skipping integration tests in short mode")
 	}
 	deleteAll(t)
+	defer deleteAll(t)
 	alice, bob := tu.UniqueString("alice"), tu.UniqueString("bob")
 	aliceClient, bobClient := getPachClient(t, alice), getPachClient(t, bob)
 
@@ -2009,7 +2010,6 @@ func TestListJob(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 1, len(jobs))
 	require.Equal(t, jobID, jobs[0].Job.ID)
-	deleteAll(t)
 }
 
 // TestInspectDatum tests InspectDatum runs even when auth is activated
@@ -2018,6 +2018,7 @@ func TestInspectDatum(t *testing.T) {
 		t.Skip("Skipping integration tests in short mode")
 	}
 	deleteAll(t)
+	defer deleteAll(t)
 	alice := tu.UniqueString("alice")
 	aliceClient := getPachClient(t, alice)
 
@@ -2072,7 +2073,6 @@ func TestInspectDatum(t *testing.T) {
 		}
 		return nil
 	})
-	deleteAll(t)
 }
 
 // TestGetLogs tests that you must have READER access to all of a job's input
@@ -2082,6 +2082,7 @@ func TestGetLogs(t *testing.T) {
 		t.Skip("Skipping integration tests in short mode")
 	}
 	deleteAll(t)
+	defer deleteAll(t)
 	alice, bob := tu.UniqueString("alice"), tu.UniqueString("bob")
 	aliceClient, bobClient := getPachClient(t, alice), getPachClient(t, bob)
 
@@ -2169,7 +2170,6 @@ func TestGetLogs(t *testing.T) {
 	iter = bobClient.GetLogs(pipeline, "", nil, "", true, false, 0)
 	iter.Next()
 	require.NoError(t, iter.Err())
-	deleteAll(t)
 }
 
 // TestGetLogsFromStats tests that GetLogs still works even when stats are
@@ -2179,6 +2179,7 @@ func TestGetLogsFromStats(t *testing.T) {
 		t.Skip("Skipping integration tests in short mode")
 	}
 	deleteAll(t)
+	defer deleteAll(t)
 	alice := tu.UniqueString("alice")
 	aliceClient := getPachClient(t, alice)
 
@@ -2226,7 +2227,6 @@ func TestGetLogsFromStats(t *testing.T) {
 	iter = aliceClient.GetLogs("", jobID, nil, "", true, false, 0)
 	iter.Next()
 	require.NoError(t, iter.Err())
-	deleteAll(t)
 }
 
 func TestPipelineNewInput(t *testing.T) {
@@ -2234,6 +2234,7 @@ func TestPipelineNewInput(t *testing.T) {
 		t.Skip("Skipping integration tests in short mode")
 	}
 	deleteAll(t)
+	defer deleteAll(t)
 	alice := tu.UniqueString("alice")
 	aliceClient := getPachClient(t, alice)
 
@@ -2318,7 +2319,6 @@ func TestPipelineNewInput(t *testing.T) {
 		_, err := iter.Next()
 		return err
 	})
-	deleteAll(t)
 }
 
 func TestModifyMembers(t *testing.T) {
@@ -2326,6 +2326,7 @@ func TestModifyMembers(t *testing.T) {
 		t.Skip("Skipping integration tests in short mode")
 	}
 	deleteAll(t)
+	defer deleteAll(t)
 
 	alice := tu.UniqueString("alice")
 	bob := tu.UniqueString("bob")
@@ -2444,7 +2445,6 @@ func TestModifyMembers(t *testing.T) {
 			}
 		})
 	}
-	deleteAll(t)
 }
 
 func TestSetGroupsForUser(t *testing.T) {
@@ -2452,6 +2452,7 @@ func TestSetGroupsForUser(t *testing.T) {
 		t.Skip("Skipping integration tests in short mode")
 	}
 	deleteAll(t)
+	defer deleteAll(t)
 
 	alice := tu.UniqueString("alice")
 	organization := tu.UniqueString("organization")
@@ -2535,7 +2536,6 @@ func TestSetGroupsForUser(t *testing.T) {
 		require.NoError(t, err)
 		require.OneOfEquals(t, gh(alice), users.Usernames)
 	}
-	deleteAll(t)
 }
 
 func TestGetGroupsEmpty(t *testing.T) {
@@ -2543,6 +2543,7 @@ func TestGetGroupsEmpty(t *testing.T) {
 		t.Skip("Skipping integration tests in short mode")
 	}
 	deleteAll(t)
+	defer deleteAll(t)
 
 	alice := tu.UniqueString("alice")
 	organization := tu.UniqueString("organization")
@@ -2565,7 +2566,6 @@ func TestGetGroupsEmpty(t *testing.T) {
 	groups, err = adminClient.GetGroups(adminClient.Ctx(), &auth.GetGroupsRequest{})
 	require.NoError(t, err)
 	require.Equal(t, 0, len(groups.Groups))
-	deleteAll(t)
 }
 
 // TestGetJobsBugFix tests the fix for https://github.com/pachyderm/pachyderm/issues/2879
@@ -2575,6 +2575,7 @@ func TestGetJobsBugFix(t *testing.T) {
 		t.Skip("Skipping integration tests in short mode")
 	}
 	deleteAll(t)
+	defer deleteAll(t)
 	alice := tu.UniqueString("alice")
 	aliceClient, anonClient := getPachClient(t, alice), getPachClient(t, "")
 
@@ -2622,14 +2623,15 @@ func TestGetJobsBugFix(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 1, len(jobs2))
 	require.Equal(t, jobs[0].Job.ID, jobs2[0].Job.ID)
-	deleteAll(t)
 }
 
+// TestOneTimePasswords tests the GetOneTimePassword -> Authenticate auth flow
 func TestOneTimePassword(t *testing.T) {
 	if testing.Short() {
 		t.Skip("Skipping integration tests in short mode")
 	}
 	deleteAll(t)
+	defer deleteAll(t)
 
 	alice := tu.UniqueString("alice")
 	aliceClient, anonClient := getPachClient(t, alice), getPachClient(t, "")
@@ -2645,7 +2647,6 @@ func TestOneTimePassword(t *testing.T) {
 	whoAmIResp, err := anonClient.WhoAmI(anonClient.Ctx(), &auth.WhoAmIRequest{})
 	require.NoError(t, err)
 	require.Equal(t, auth.GitHubPrefix+alice, whoAmIResp.Username)
-	deleteAll(t)
 }
 
 func TestOneTimePasswordOtherUserError(t *testing.T) {
@@ -2653,6 +2654,7 @@ func TestOneTimePasswordOtherUserError(t *testing.T) {
 		t.Skip("Skipping integration tests in short mode")
 	}
 	deleteAll(t)
+	defer deleteAll(t)
 
 	alice, bob := tu.UniqueString("alice"), tu.UniqueString("bob")
 	aliceClient := getPachClient(t, alice)
@@ -2662,7 +2664,6 @@ func TestOneTimePasswordOtherUserError(t *testing.T) {
 		})
 	require.YesError(t, err)
 	require.Matches(t, "GetOneTimePassword", err.Error())
-	deleteAll(t)
 }
 
 func TestOneTimePasswordExpires(t *testing.T) {
@@ -2734,6 +2735,7 @@ func TestDeleteFailedPipeline(t *testing.T) {
 		t.Skip("Skipping integration tests in short mode")
 	}
 	deleteAll(t)
+	defer deleteAll(t)
 	alice := tu.UniqueString("alice")
 	aliceClient := getPachClient(t, alice)
 
@@ -2769,7 +2771,6 @@ func TestDeleteFailedPipeline(t *testing.T) {
 		}
 		return nil
 	})
-	deleteAll(t)
 }
 
 // TestDeletePipelineMissingRepos creates a pipeline, force-deletes its input
@@ -2780,6 +2781,7 @@ func TestDeletePipelineMissingRepos(t *testing.T) {
 		t.Skip("Skipping integration tests in short mode")
 	}
 	deleteAll(t)
+	defer deleteAll(t)
 	alice := tu.UniqueString("alice")
 	aliceClient := getPachClient(t, alice)
 
@@ -2819,7 +2821,6 @@ func TestDeletePipelineMissingRepos(t *testing.T) {
 		}
 		return nil
 	})
-	deleteAll(t)
 }
 
 func TestDisableGitHubAuth(t *testing.T) {
@@ -2827,6 +2828,7 @@ func TestDisableGitHubAuth(t *testing.T) {
 		t.Skip("Skipping integration tests in short mode")
 	}
 	deleteAll(t)
+	defer deleteAll(t)
 
 	// activate auth with initial admin robot:hub
 	adminClient := getPachClient(t, admin)
@@ -2881,5 +2883,4 @@ func TestDisableGitHubAuth(t *testing.T) {
 	require.NoError(t, err)
 
 	// clean up
-	deleteAll(t)
 }
